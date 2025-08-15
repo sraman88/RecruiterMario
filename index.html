@@ -1,13 +1,79 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Recruiter Run</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Recruiter Mario — Recruiter Run</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Recruiter Run</h1>
-  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <header>
+    <h1>Recruiter Run — Recruiter Mario</h1>
+    <div class="sub">Shoot offers, recruit candidates, level up your TA career!</div>
+  </header>
+
+  <main>
+    <div id="game-wrap">
+      <canvas id="gameCanvas" width="1000" height="562"></canvas>
+
+      <div id="ui">
+        <div id="score">Score: 0</div>
+        <div id="cvs">Candidates: 0 / 5</div>
+        <div id="level">Role: Associate TA</div>
+        <div id="time">Time: 0</div>
+        <div id="help">Move: ◀ ▶ • Jump: ↑ / Space • Shoot: S • Pause: P</div>
+      </div>
+
+      <div id="overlay" class="overlay show">
+        <div class="card">
+          <h2>Recruiter Run</h2>
+          <p>Play as Recruiter Mario in an office. Shoot offers (S) to candidates. Some accept, some throw offers back — dodge them! Level up your role as you recruit more.</p>
+          <div class="buttons">
+            <button id="btn-start">Start</button>
+            <button id="btn-how">How to play</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="how" class="overlay" style="display:none">
+        <div class="card">
+          <h2>How to play</h2>
+          <ul>
+            <li>Move left/right — keyboard or on-screen (mobile). Jump to dodge.</li>
+            <li>Press <b>S</b> to shoot an offer (envelope). Candidates may accept or throw it back.</li>
+            <li>Recruit required number of candidates to level up; costumes change with role.</li>
+            <li>Good managers spawn occasionally to give a magnet (pulls candidates). Bad managers snatch candidates or shoot meeting invites.</li>
+            <li>Reach the flag to complete a level. Fireworks celebrate success!</li>
+          </ul>
+          <div class="buttons"><button id="btn-back">Back</button></div>
+        </div>
+      </div>
+
+      <div id="end" class="overlay" style="display:none">
+        <div class="card">
+          <h2 id="endTitle">Level Complete</h2>
+          <p id="endText"></p>
+          <div class="buttons">
+            <button id="btn-restart">Restart</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile controls -->
+      <div id="mobile-controls">
+        <button id="m-left">◀</button>
+        <button id="m-jump">⤴</button>
+        <button id="m-right">▶</button>
+        <button id="m-shoot">✉</button>
+        <button id="m-pause">⏸</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <small>Built for recruiters — feel free to customize sprites & thresholds.</small>
+  </footer>
+
   <script src="script.js"></script>
 </body>
 </html>
