@@ -1,91 +1,126 @@
+// Canvas setup
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Character setup
-let charX = 100, charY = 350;
-let charWidth = 50, charHeight = 50;
-let velocityY = 0, gravity = 1;
-let isJumping = false;
+// Load images
+const characterImg = new Image();
+characterImg.src = "assets/images/character.png";
 
-const character = new Image();
-character.src = "assets/character.png";
+const candidateImg = new Image();
+candidateImg.src = "assets/images/candidate.png";
 
-// Candidate setup
-let candidateX = 800, candidateY = 350;
-const candidate = new Image();
-candidate.src = "assets/candidate.png";
-
-// Offers (projectiles)
-let offers = [];
 const offerImg = new Image();
-offerImg.src = "assets/offer.png";
+offerImg.src = "assets/images/offer.png";
 
-// Keys
-let keys = {};
+// Game objects
+let character = {
+  x: 50,
+  y: 300,
+  width: 50,
+  height: 50,
+  speed: 5,
+  dx: 0
+};
 
-// Listen to keys
+let candidates = [];
+let offers = [];
+let score = 0;
+
+// Controls
 document.addEventListener("keydown", (e) => {
-  keys[e.code] = true;
-  if (e.code === "Space") {
-    shootOffer();
+  if (e.key === "ArrowRight") character.dx = character.speed;
+  if (e.key === "ArrowLeft") character.dx = -character.speed;
+  if (e.key === " ") {
+    // Shoot an offer
+    offers.push({
+      x: character.x + 30,
+      y: character.y + 10,
+      width: 20,
+      height: 20
+    });
   }
 });
-document.addEventListener("keyup", (e) => keys[e.code] = false);
 
-// Shoot function
-function shootOffer() {
-  offers.push({ x: charX + 40, y: charY + 20, width: 20, height: 20 });
+document.addEventListener("keyup", (e) => {
+  if (e.key === "ArrowRight" || e.key === "ArrowLeft") character.dx = 0;
+});
+
+// Spawn candidates randomly
+function spawnCandidate() {
+  candidates.push({
+    x: canvas.width,
+    y: 300,
+    width: 50,
+    height: 50,
+    speed: 2
+  });
+}
+setInterval(spawnCandidate, 2000);
+
+// Update positions
+function update() {
+  character.x += character.dx;
+
+  // Keep Mario inside canvas
+  if (character.x < 0) character.x = 0;
+  if (character.x + character.width > canvas.width)
+    character.x = canvas.width - character.width;
+
+  // Move candidates
+  candidates.forEach((c) => {
+    c.x -= c.speed;
+  });
+
+  // Move offers
+  offers.forEach((o) => {
+    o.x += 5;
+  });
+
+  // Collision detection
+  offers.forEach((o, oi) => {
+    candidates.forEach((c, ci) => {
+      if (
+        o.x < c.x + c.width &&
+        o.x + o.width > c.x &&
+        o.y < c.y + c.height &&
+        o.y + o.height > c.y
+      ) {
+        // Hit! Remove candidate and offer
+        candidates.splice(ci, 1);
+        offers.splice(oi, 1);
+        score++;
+      }
+    });
+  });
+}
+
+// Draw game
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw character
+  ctx.drawImage(characterImg, character.x, character.y, character.width, character.height);
+
+  // Draw candidates
+  candidates.forEach((c) => {
+    ctx.drawImage(candidateImg, c.x, c.y, c.width, c.height);
+  });
+
+  // Draw offers
+  offers.forEach((o) => {
+    ctx.drawImage(offerImg, o.x, o.y, o.width, o.height);
+  });
+
+  // Draw score
+  ctx.fillStyle = "black";
+  ctx.font = "20px Arial";
+  ctx.fillText("Score: " + score, 10, 20);
 }
 
 // Game loop
-function update() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Recruiter movement
-  if (keys["ArrowRight"] && charX < canvas.width - charWidth) charX += 5;
-  if (keys["ArrowLeft"] && charX > 0) charX -= 5;
-
-  // Jump
-  if (keys["ArrowUp"] && !isJumping) {
-    velocityY = -15;
-    isJumping = true;
-  }
-
-  charY += velocityY;
-  velocityY += gravity;
-
-  if (charY >= 350) {
-    charY = 350;
-    isJumping = false;
-  }
-
-  ctx.drawImage(character, charX, charY, charWidth, charHeight);
-
-  // Candidate movement
-  candidateX -= 2;
-  if (candidateX < -50) candidateX = canvas.width;
-  ctx.drawImage(candidate, candidateX, candidateY, 50, 50);
-
-  // Offers
-  for (let i = 0; i < offers.length; i++) {
-    let offer = offers[i];
-    offer.x += 7;
-    ctx.drawImage(offerImg, offer.x, offer.y, offer.width, offer.height);
-
-    // Collision detection
-    if (
-      offer.x < candidateX + 50 &&
-      offer.x + offer.width > candidateX &&
-      offer.y < candidateY + 50 &&
-      offer.y + offer.height > candidateY
-    ) {
-      candidateX = canvas.width; // reset candidate
-      offers.splice(i, 1); // remove offer
-    }
-  }
-
-  requestAnimationFrame(update);
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
 }
-
-update();
-
+loop();
