@@ -1,94 +1,102 @@
-// Canvas setup
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Load images
-const characterImg = new Image();
-characterImg.src = "assets/images/character.png";
+canvas.width = 800;
+canvas.height = 400;
 
-const candidateImg = new Image();
-candidateImg.src = "assets/images/candidate.png";
+// Load Images
+const characterIdle = new Image();
+characterIdle.src = "assets/images/character_idle.png";
 
-const offerImg = new Image();
-offerImg.src = "assets/images/offer.png";
+const characterWalk = new Image();
+characterWalk.src = "assets/images/character_walk.png";
 
-// Game objects
-let character = { x: 50, y: 300, width: 50, height: 50, speed: 5, dx: 0 };
-let candidates = [];
-let offers = [];
-let score = 0;
+const characterJump = new Image();
+characterJump.src = "assets/images/character_jump.png";
+
+// Character object
+let character = {
+  x: 100,
+  y: 300,
+  width: 50,
+  height: 70,
+  vy: 0,
+  gravity: 0.8,
+  jumpPower: -12,
+  grounded: true,
+  speed: 4,
+  moving: false,
+  jumping: false,
+  sprite: characterIdle
+};
 
 // Controls
+let keys = {};
 document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowRight") character.dx = character.speed;
-  if (e.key === "ArrowLeft") character.dx = -character.speed;
-  if (e.key === " ") {
-    offers.push({ x: character.x + 30, y: character.y + 10, width: 20, height: 20 });
+  keys[e.code] = true;
+
+  if (e.code === "Space" && character.grounded) {
+    character.vy = character.jumpPower;
+    character.grounded = false;
+    character.jumping = true;
+    character.sprite = characterJump;
   }
 });
 document.addEventListener("keyup", (e) => {
-  if (e.key === "ArrowRight" || e.key === "ArrowLeft") character.dx = 0;
+  keys[e.code] = false;
 });
 
-// Spawn candidates
-function spawnCandidate() {
-  candidates.push({ x: canvas.width, y: 300, width: 50, height: 50, speed: 2 });
-}
-setInterval(spawnCandidate, 2000);
-
-// Update
+// Update loop
 function update() {
-  character.x += character.dx;
-  if (character.x < 0) character.x = 0;
-  if (character.x + character.width > canvas.width) character.x = canvas.width - character.width;
+  character.moving = false;
 
-  candidates.forEach((c) => (c.x -= c.speed));
-  offers.forEach((o) => (o.x += 5));
+  if (keys["ArrowRight"]) {
+    character.x += character.speed;
+    character.moving = true;
+  }
+  if (keys["ArrowLeft"]) {
+    character.x -= character.speed;
+    character.moving = true;
+  }
 
-  // Collision detection
-  offers.forEach((o, oi) => {
-    candidates.forEach((c, ci) => {
-      if (
-        o.x < c.x + c.width &&
-        o.x + o.width > c.x &&
-        o.y < c.y + c.height &&
-        o.y + o.height > c.y
-      ) {
-        candidates.splice(ci, 1);
-        offers.splice(oi, 1);
-        score++;
-      }
-    });
-  });
+  // Apply gravity
+  character.y += character.vy;
+  character.vy += character.gravity;
+
+  // Ground check
+  if (character.y + character.height >= canvas.height - 20) {
+    character.y = canvas.height - 20 - character.height;
+    character.vy = 0;
+    character.grounded = true;
+    character.jumping = false;
+  }
+
+  // Sprite state
+  if (character.jumping) {
+    character.sprite = characterJump;
+  } else if (character.moving) {
+    character.sprite = characterWalk;
+  } else {
+    character.sprite = characterIdle;
+  }
 }
 
-// Draw
+// Draw loop
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(characterImg, character.x, character.y, character.width, character.height);
 
-  candidates.forEach((c) => ctx.drawImage(candidateImg, c.x, c.y, c.width, c.height));
-  offers.forEach((o) => ctx.drawImage(offerImg, o.x, o.y, o.width, o.height));
+  // Draw ground
+  ctx.fillStyle = "#6ab04c";
+  ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
 
-  ctx.fillStyle = "black";
-  ctx.font = "20px Arial";
-  ctx.fillText("Score: " + score, 10, 20);
+  // Draw character
+  ctx.drawImage(character.sprite, character.x, character.y, character.width, character.height);
 }
 
 // Game loop
-function loop() {
+function gameLoop() {
   update();
   draw();
-  requestAnimationFrame(loop);
+  requestAnimationFrame(gameLoop);
 }
-
-// ✅ Only start after images load
-let loaded = 0;
-[characterImg, candidateImg, offerImg].forEach((img) => {
-  img.onload = () => {
-    loaded++;
-    if (loaded === 3) {
-      loop();
-    }
-  };
-});
+gameLoop();
