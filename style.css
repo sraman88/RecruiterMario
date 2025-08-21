@@ -1,7 +1,7 @@
 body {
   margin: 0;
   padding: 0;
-  background: #cce7ff;
+  background: #f0f0f0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -9,7 +9,6 @@ body {
 }
 
 #gameCanvas {
-  background: #aee1f9;
-  border: 2px solid #333;
-  display: block;
+  border: 3px solid black;
+  background: linear-gradient(to top, #87CEEB, #ffffff);
 }
