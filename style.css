@@ -1,1 +1,14 @@
+body {
+  text-align: center;
+  background: #f4f7fb;
+  font-family: Arial, sans-serif;
+}
+
+canvas {
+  border: 3px solid #333;
+  background: linear-gradient(to top, #a8edea, #fed6e3);
+  display: block;
+  margin: 0 auto;
+  border-radius: 12px;
+}
 
