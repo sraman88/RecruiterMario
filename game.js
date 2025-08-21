@@ -1,96 +1,150 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-canvas.width = 800;
-canvas.height = 400;
+canvas.width = 900;
+canvas.height = 500;
 
-// Load Images
-const characterIdle = new Image();
-characterIdle.src = "assets/images/character_idle.png";
-
-const characterWalk = new Image();
-characterWalk.src = "assets/images/character_walk.png";
-
-const characterJump = new Image();
-characterJump.src = "assets/images/character_jump.png";
-
-// Character object
-let character = {
-  x: 100,
-  y: 300,
-  width: 50,
-  height: 70,
-  vy: 0,
-  gravity: 0.8,
-  jumpPower: -12,
-  grounded: true,
-  speed: 4,
-  moving: false,
-  jumping: false,
-  sprite: characterIdle
+// Load images
+const images = {};
+const imageSources = {
+  idle: "assets/images/character_idle.png",
+  walk: "assets/images/character_walk.png",
+  jump: "assets/images/character_jump.png",
+  candidate: "assets/images/candidate.png",
+  offer: "assets/images/offer.png",
+  pillar: "assets/images/pillar.png",
+  enemy: "assets/images/enemy_demon.png",
 };
 
-// Controls
-let keys = {};
+for (let key in imageSources) {
+  images[key] = new Image();
+  images[key].src = imageSources[key];
+}
+
+// Character
+const player = {
+  x: 100,
+  y: 400,
+  width: 50,
+  height: 50,
+  dy: 0,
+  gravity: 0.8,
+  grounded: false,
+  state: "idle", // idle, walk, jump
+};
+
+// Offers thrown
+const offers = [];
+
+// Candidates
+const candidates = [
+  { x: 600, y: 420, width: 40, height: 40, hit: false },
+  { x: 800, y: 420, width: 40, height: 40, hit: false },
+];
+
+// Enemies
+const enemies = [
+  { x: 500, y: 420, width: 40, height: 40 },
+  { x: 750, y: 420, width: 40, height: 40 },
+];
+
+// Input
+const keys = {};
 document.addEventListener("keydown", (e) => {
   keys[e.code] = true;
 
-  if (e.code === "Space" && character.grounded) {
-    character.vy = character.jumpPower;
-    character.grounded = false;
-    character.jumping = true;
-    character.sprite = characterJump;
+  if (e.code === "Space" && player.grounded) {
+    player.dy = -15;
+    player.grounded = false;
+    player.state = "jump";
+  }
+
+  if (e.code === "KeyF") {
+    offers.push({ x: player.x + player.width, y: player.y + 20, width: 20, height: 20, dx: 6 });
   }
 });
-document.addEventListener("keyup", (e) => {
-  keys[e.code] = false;
-});
+document.addEventListener("keyup", (e) => (keys[e.code] = false));
 
-// Update loop
+// Update
 function update() {
-  character.moving = false;
-
+  // Movement
   if (keys["ArrowRight"]) {
-    character.x += character.speed;
-    character.moving = true;
-  }
-  if (keys["ArrowLeft"]) {
-    character.x -= character.speed;
-    character.moving = true;
-  }
-
-  // Apply gravity
-  character.y += character.vy;
-  character.vy += character.gravity;
-
-  // Ground check
-  if (character.y + character.height >= canvas.height - 20) {
-    character.y = canvas.height - 20 - character.height;
-    character.vy = 0;
-    character.grounded = true;
-    character.jumping = false;
+    player.x += 4;
+    if (player.grounded) player.state = "walk";
+  } else if (keys["ArrowLeft"]) {
+    player.x -= 4;
+    if (player.grounded) player.state = "walk";
+  } else if (player.grounded) {
+    player.state = "idle";
   }
 
-  // Sprite state
-  if (character.jumping) {
-    character.sprite = characterJump;
-  } else if (character.moving) {
-    character.sprite = characterWalk;
+  // Gravity
+  player.y += player.dy;
+  if (player.y + player.height < canvas.height) {
+    player.dy += player.gravity;
+    player.grounded = false;
   } else {
-    character.sprite = characterIdle;
+    player.y = canvas.height - player.height;
+    player.dy = 0;
+    player.grounded = true;
+    if (player.state === "jump") player.state = "idle";
   }
+
+  // Move offers
+  offers.forEach((offer, index) => {
+    offer.x += offer.dx;
+    if (offer.x > canvas.width) offers.splice(index, 1);
+  });
+
+  // Collisions with candidates
+  offers.forEach((offer) => {
+    candidates.forEach((c) => {
+      if (!c.hit && isColliding(offer, c)) {
+        c.hit = true;
+      }
+    });
+  });
+
+  // Collisions with enemies
+  offers.forEach((offer, index) => {
+    enemies.forEach((enemy, eIndex) => {
+      if (isColliding(offer, enemy)) {
+        enemies.splice(eIndex, 1);
+        offers.splice(index, 1);
+      }
+    });
+  });
 }
 
-// Draw loop
+// Draw
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Draw ground
-  ctx.fillStyle = "#6ab04c";
-  ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+  // Player
+  ctx.drawImage(images[player.state], player.x, player.y, player.width, player.height);
 
-  // Draw character
-  ctx.drawImage(character.sprite, character.x, character.y, character.width, character.height);
+  // Candidates
+  candidates.forEach((c) => {
+    if (!c.hit) ctx.drawImage(images.candidate, c.x, c.y, c.width, c.height);
+  });
+
+  // Enemies
+  enemies.forEach((enemy) => {
+    ctx.drawImage(images.enemy, enemy.x, enemy.y, enemy.width, enemy.height);
+  });
+
+  // Offers
+  offers.forEach((offer) => {
+    ctx.drawImage(images.offer, offer.x, offer.y, offer.width, offer.height);
+  });
+}
+
+// Collision check
+function isColliding(a, b) {
+  return a.x < b.x + b.width &&
+         a.x + a.width > b.x &&
+         a.y < b.y + b.height &&
+         a.y + a.height > b.y;
 }
 
 // Game loop
@@ -99,4 +153,5 @@ function gameLoop() {
   draw();
   requestAnimationFrame(gameLoop);
 }
+
 gameLoop();
