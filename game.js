@@ -13,15 +13,7 @@ const offerImg = new Image();
 offerImg.src = "assets/images/offer.png";
 
 // Game objects
-let character = {
-  x: 50,
-  y: 300,
-  width: 50,
-  height: 50,
-  speed: 5,
-  dx: 0
-};
-
+let character = { x: 50, y: 300, width: 50, height: 50, speed: 5, dx: 0 };
 let candidates = [];
 let offers = [];
 let score = 0;
@@ -31,50 +23,27 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowRight") character.dx = character.speed;
   if (e.key === "ArrowLeft") character.dx = -character.speed;
   if (e.key === " ") {
-    // Shoot an offer
-    offers.push({
-      x: character.x + 30,
-      y: character.y + 10,
-      width: 20,
-      height: 20
-    });
+    offers.push({ x: character.x + 30, y: character.y + 10, width: 20, height: 20 });
   }
 });
-
 document.addEventListener("keyup", (e) => {
   if (e.key === "ArrowRight" || e.key === "ArrowLeft") character.dx = 0;
 });
 
-// Spawn candidates randomly
+// Spawn candidates
 function spawnCandidate() {
-  candidates.push({
-    x: canvas.width,
-    y: 300,
-    width: 50,
-    height: 50,
-    speed: 2
-  });
+  candidates.push({ x: canvas.width, y: 300, width: 50, height: 50, speed: 2 });
 }
 setInterval(spawnCandidate, 2000);
 
-// Update positions
+// Update
 function update() {
   character.x += character.dx;
-
-  // Keep Mario inside canvas
   if (character.x < 0) character.x = 0;
-  if (character.x + character.width > canvas.width)
-    character.x = canvas.width - character.width;
+  if (character.x + character.width > canvas.width) character.x = canvas.width - character.width;
 
-  // Move candidates
-  candidates.forEach((c) => {
-    c.x -= c.speed;
-  });
-
-  // Move offers
-  offers.forEach((o) => {
-    o.x += 5;
-  });
+  candidates.forEach((c) => (c.x -= c.speed));
+  offers.forEach((o) => (o.x += 5));
 
   // Collision detection
   offers.forEach((o, oi) => {
@@ -85,7 +54,6 @@ function update() {
         o.y < c.y + c.height &&
         o.y + o.height > c.y
       ) {
-        // Hit! Remove candidate and offer
         candidates.splice(ci, 1);
         offers.splice(oi, 1);
         score++;
@@ -94,24 +62,14 @@ function update() {
   });
 }
 
-// Draw game
+// Draw
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Draw character
   ctx.drawImage(characterImg, character.x, character.y, character.width, character.height);
 
-  // Draw candidates
-  candidates.forEach((c) => {
-    ctx.drawImage(candidateImg, c.x, c.y, c.width, c.height);
-  });
+  candidates.forEach((c) => ctx.drawImage(candidateImg, c.x, c.y, c.width, c.height));
+  offers.forEach((o) => ctx.drawImage(offerImg, o.x, o.y, o.width, o.height));
 
-  // Draw offers
-  offers.forEach((o) => {
-    ctx.drawImage(offerImg, o.x, o.y, o.width, o.height);
-  });
-
-  // Draw score
   ctx.fillStyle = "black";
   ctx.font = "20px Arial";
   ctx.fillText("Score: " + score, 10, 20);
@@ -123,4 +81,14 @@ function loop() {
   draw();
   requestAnimationFrame(loop);
 }
-loop();
+
+// ✅ Only start after images load
+let loaded = 0;
+[characterImg, candidateImg, offerImg].forEach((img) => {
+  img.onload = () => {
+    loaded++;
+    if (loaded === 3) {
+      loop();
+    }
+  };
+});
