@@ -24,9 +24,9 @@ for (let key in imageSources) {
 // Character
 const player = {
   x: 100,
-  y: 400,
-  width: 50,
-  height: 50,
+  y: 350,
+  width: 80,   // bigger size
+  height: 100, // bigger size
   dy: 0,
   gravity: 0.8,
   grounded: false,
@@ -38,14 +38,14 @@ const offers = [];
 
 // Candidates
 const candidates = [
-  { x: 600, y: 420, width: 40, height: 40, hit: false },
-  { x: 800, y: 420, width: 40, height: 40, hit: false },
+  { x: 600, y: 380, width: 60, height: 80, hit: false },
+  { x: 800, y: 380, width: 60, height: 80, hit: false },
 ];
 
 // Enemies
 const enemies = [
-  { x: 500, y: 420, width: 40, height: 40 },
-  { x: 750, y: 420, width: 40, height: 40 },
+  { x: 500, y: 380, width: 70, height: 80 },
+  { x: 750, y: 380, width: 70, height: 80 },
 ];
 
 // Input
@@ -53,14 +53,20 @@ const keys = {};
 document.addEventListener("keydown", (e) => {
   keys[e.code] = true;
 
-  if (e.code === "Space" && player.grounded) {
-    player.dy = -15;
+  if (e.code === "ArrowUp" && player.grounded) {
+    player.dy = -18;
     player.grounded = false;
     player.state = "jump";
   }
 
-  if (e.code === "KeyF") {
-    offers.push({ x: player.x + player.width, y: player.y + 20, width: 20, height: 20, dx: 6 });
+  if (e.code === "Space") {
+    offers.push({
+      x: player.x + player.width,
+      y: player.y + player.height / 2,
+      width: 40,
+      height: 40,
+      dx: 6,
+    });
   }
 });
 document.addEventListener("keyup", (e) => (keys[e.code] = false));
@@ -69,10 +75,10 @@ document.addEventListener("keyup", (e) => (keys[e.code] = false));
 function update() {
   // Movement
   if (keys["ArrowRight"]) {
-    player.x += 4;
+    player.x += 5;
     if (player.grounded) player.state = "walk";
   } else if (keys["ArrowLeft"]) {
-    player.x -= 4;
+    player.x -= 5;
     if (player.grounded) player.state = "walk";
   } else if (player.grounded) {
     player.state = "idle";
@@ -97,61 +103,4 @@ function update() {
   });
 
   // Collisions with candidates
-  offers.forEach((offer) => {
-    candidates.forEach((c) => {
-      if (!c.hit && isColliding(offer, c)) {
-        c.hit = true;
-      }
-    });
-  });
-
-  // Collisions with enemies
-  offers.forEach((offer, index) => {
-    enemies.forEach((enemy, eIndex) => {
-      if (isColliding(offer, enemy)) {
-        enemies.splice(eIndex, 1);
-        offers.splice(index, 1);
-      }
-    });
-  });
-}
-
-// Draw
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Player
-  ctx.drawImage(images[player.state], player.x, player.y, player.width, player.height);
-
-  // Candidates
-  candidates.forEach((c) => {
-    if (!c.hit) ctx.drawImage(images.candidate, c.x, c.y, c.width, c.height);
-  });
-
-  // Enemies
-  enemies.forEach((enemy) => {
-    ctx.drawImage(images.enemy, enemy.x, enemy.y, enemy.width, enemy.height);
-  });
-
-  // Offers
-  offers.forEach((offer) => {
-    ctx.drawImage(images.offer, offer.x, offer.y, offer.width, offer.height);
-  });
-}
-
-// Collision check
-function isColliding(a, b) {
-  return a.x < b.x + b.width &&
-         a.x + a.width > b.x &&
-         a.y < b.y + b.height &&
-         a.y + a.height > b.y;
-}
-
-// Game loop
-function gameLoop() {
-  update();
-  draw();
-  requestAnimationFrame(gameLoop);
-}
-
-gameLoop();
+  offers.forEach((offer)
