@@ -1,23 +1,15 @@
 body {
   margin: 0;
   padding: 0;
+  background: #cce7ff;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   height: 100vh;
-  background: linear-gradient(to top, #87ceeb, #ffffff);
-  font-family: Arial, sans-serif;
-}
-
-.title {
-  font-size: 24px;
-  margin: 10px;
-  color: #333;
 }
 
 #gameCanvas {
-  border: 3px solid #333;
-  background-color: #cce6ff;
-  border-radius: 10px;
+  background: #aee1f9;
+  border: 2px solid #333;
+  display: block;
 }
